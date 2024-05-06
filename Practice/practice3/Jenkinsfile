@@ -1,0 +1,63 @@
+def buildDockerImage(String repo, String tag, String port, String version) {
+  return {
+    dir(repo) {
+      sh "buildah bud \
+      --build-arg PORT=${port} \
+      --build-arg VERSION=${version} \
+      --tag creampanda/yadro_currency_app:${tag} ."
+    }
+  }
+}
+
+def updateDockerImage(String repo, String tag, String credentials_id) {
+  return {
+    dir(repo) {
+      withCredentials([usernamePassword(
+        credentialsId: credentials_id,
+        passwordVariable: 'HUB_PASSWORD',
+        usernameVariable: 'HUB_USERNAME'
+      )]) {
+        sh """
+          buildah login -u ${HUB_USERNAME} -p ${HUB_PASSWORD} docker.io
+          buildah push creampanda/yadro_currency_app:${tag}
+          buildah logout docker.io
+        """
+      }
+    }
+  }
+}
+
+node {
+    REPO = 'repo'
+    BRANCH_NAME = env.BRANCH_NAME ?: 'master'
+    GIT_CREDENTIALS_ID = 'project_51_bot_1'
+    DOCKER_CREDENTIALS_ID = 'DockerHubToken'
+    GIT_URL = 'https://gitlab-pub.yadro.com/devops-school-2024/student/a.karaulov'
+    PORT = '8080'
+    TAG_NAME = BRANCH_NAME == 'master' ? 'stable' : 'latest'
+
+    stage('Checkout repo') {
+        checkout scmGit(branches: [
+        [name: "${BRANCH_NAME}"]
+      ],
+      extensions: [
+        [$class: 'RelativeTargetDirectory', relativeTargetDir: "${REPO}"]
+      ],
+      userRemoteConfigs: [
+        [
+          credentialsId: GIT_CREDENTIALS_ID,
+          url: GIT_URL
+        ]
+      ]
+    )
+    }
+    stage('Build docker image') {
+        buildDockerImage(REPO, TAG_NAME, PORT, env.TAG_NAME ?: '')()
+    }
+    stage('Push docker image to docker hub') {
+        updateDockerImage(REPO, 'latest', DOCKER_CREDENTIALS_ID)()
+        if (BRANCH_NAME == 'master') {
+          updateDockerImage(REPO, 'stable', DOCKER_CREDENTIALS_ID)()
+        }
+    }
+}

@@ -6,8 +6,8 @@ Year: 2023/2024
 Group: K4113c
 Author: Karaulov Andrei Olegovich
 Practice: practice1
-Date of create: 25.05.2024
-Date of finished: 25.05.2024
+Date of create: 25.04.2024
+Date of finished: 25.04.2024
 ```
 
 
