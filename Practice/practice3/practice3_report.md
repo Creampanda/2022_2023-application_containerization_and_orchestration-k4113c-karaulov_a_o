@@ -5,7 +5,7 @@ Course: [Application containerization and orchestration](https://github.com/itmo
 Year: 2023/2024
 Group: K4113c
 Author: Karaulov Andrei Olegovich
-Practice: practice1
+Practice: practice3
 Date of create: 06.05.2024
 Date of finished: 06.05.2024
 ```
